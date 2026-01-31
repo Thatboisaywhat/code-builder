@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Code Builder</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        #blackout { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: black; z-index: 9999; }
+    </style>
+</head>
+<body class="bg-gray-900 text-white h-screen flex flex-col">
+
+    <div id="blackout"></div>
+
+    <header class="p-4 border-b border-gray-700 flex justify-between items-center">
+        <h1 class="text-xl font-bold">CodeLabs 2026</h1>
+        <button onclick="toggleBlackout()" class="bg-gray-700 px-4 py-2 rounded hover:bg-gray-600">Blackout Mode</button>
+    </header>
+
+    <main class="flex-1 flex">
+        <div class="w-1/2 p-4 border-r border-gray-700">
+            <textarea id="code-input" class="w-full h-full bg-gray-800 p-4 font-mono text-green-400 rounded outline-none" placeholder="Write HTML/CSS here..."></textarea>
+        </div>
+        <div class="w-1/2 bg-white">
+            <iframe id="preview" class="w-full h-full"></iframe>
+        </div>
+    </main>
+
+    <script>
+        const input = document.getElementById('code-input');
+        const preview = document.getElementById('preview');
+
+        // Real-time Build logic
+        input.addEventListener('input', () => {
+            const content = input.value;
+            preview.srcdoc = content;
+        });
+
+        // Blackout Logic
+        function toggleBlackout() {
+            const b = document.getElementById('blackout');
+            b.style.display = (b.style.display === 'block') ? 'none' : 'block';
+        }
+
+        // Alt + R Shortcut
+        window.addEventListener('keydown', (e) => {
+            if (e.altKey && e.key === 'r') {
+                alert("Resetting for testing...");
+                location.reload();
+            }
+        });
+    </script>
+</body>
+</html>
