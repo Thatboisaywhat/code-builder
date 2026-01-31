@@ -2,75 +2,141 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>LUARMOR | Dashboard</title>
+    <title>LUARMOR | Enterprise Protection</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs/loader.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;900&display=swap" rel="stylesheet">
     <style>
-        body { background-color: #020408; font-family: 'Inter', sans-serif; color: #e2e8f0; }
-        .luarmor-card { background: #0b111a; border: 1px solid #1e293b; border-radius: 8px; }
-        .luarmor-input { background: #05080f; border: 1px solid #1e293b; color: #38bdf8; font-family: monospace; }
-        .btn-primary { background: #38bdf8; color: #020408; font-weight: 700; transition: 0.2s; }
-        .btn-primary:hover { background: #7dd3fc; box-shadow: 0 0 15px rgba(56, 189, 248, 0.4); }
-        #login-overlay { background: #020408; position: fixed; inset: 0; z-index: 99; display: flex; align-items: center; justify-content: center; }
+        :root { --bg: #050505; --panel: #0a0a0a; --accent: #3b82f6; --text-muted: #525252; }
+        body { background-color: var(--bg); font-family: 'Inter', sans-serif; color: #e5e5e5; overflow: hidden; }
+        .sidebar { width: 250px; border-right: 1px solid #171717; background: var(--panel); }
+        .nav-item { padding: 12px 20px; color: #737373; font-size: 13px; font-weight: 600; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 10px; }
+        .nav-item:hover, .nav-item.active { color: white; background: rgba(255,255,255,0.03); border-right: 2px solid var(--accent); }
+        .editor-container { height: calc(100vh - 140px); border: 1px solid #171717; border-radius: 4px; overflow: hidden; }
+        .btn-action { background: var(--accent); color: white; padding: 10px 24px; font-weight: 700; font-size: 12px; letter-spacing: 1px; text-transform: uppercase; border-radius: 4px; transition: 0.2s; }
+        .btn-action:hover { box-shadow: 0 0 20px rgba(59, 130, 246, 0.4); }
+        .stat-box { background: #0f0f0f; border: 1px solid #171717; padding: 15px; border-radius: 6px; }
+        
+        /* Auth Overlay */
+        #auth-gate { position: fixed; inset: 0; background: #000; z-index: 999; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .glitch-text { font-family: 'JetBrains Mono'; font-weight: 900; letter-spacing: -2px; }
     </style>
 </head>
-<body>
+<body class="flex h-screen">
 
-    <div id="login-overlay">
-        <div class="luarmor-card p-8 w-96 shadow-2xl">
-            <h1 class="text-2xl font-black tracking-tighter mb-2 italic">LUARMOR<span class="text-blue-500">.</span></h1>
-            <p class="text-xs text-slate-500 mb-6 uppercase tracking-widest font-bold">Encrypted Session Required</p>
-            <input type="password" id="pass" placeholder="License Key" class="luarmor-input w-full p-3 rounded mb-4 outline-none">
-            <button onclick="login()" class="btn-primary w-full py-3 rounded uppercase text-sm">Sign In</button>
+    <div id="auth-gate">
+        <h1 class="text-5xl glitch-text text-white mb-2">LUARMOR<span class="text-blue-600">.</span></h1>
+        <p class="text-xs text-gray-600 uppercase tracking-[0.3em] mb-8 font-bold">Restricted Environment</p>
+        <div class="flex flex-col gap-3 w-64">
+            <input type="password" id="key-entry" placeholder="ACCESS_TOKEN" class="bg-[#111] border border-[#222] text-center text-white text-xs p-3 rounded outline-none focus:border-blue-600 transition">
+            <button onclick="authenticate()" class="bg-white text-black font-bold text-xs p-3 rounded hover:bg-gray-200">INITIALIZE</button>
+        </div>
+        <p id="error-msg" class="text-red-500 text-[10px] mt-4 opacity-0 transition">UNAUTHORIZED CONNECTION</p>
+    </div>
+
+    <div class="sidebar flex flex-col justify-between py-6">
+        <div>
+            <div class="px-6 mb-10">
+                <h1 class="text-xl font-black italic tracking-tighter">LUARMOR<span class="text-blue-600">.</span></h1>
+                <span class="text-[10px] text-gray-600 uppercase font-bold">Enterprise V3</span>
+            </div>
+            <div class="nav-item active"><span>⚡</span> Dashboard</div>
+            <div class="nav-item"><span>🛡️</span> Whitelist</div>
+            <div class="nav-item"><span>📊</span> Analytics</div>
+            <div class="nav-item"><span>⚙️</span> API Settings</div>
+        </div>
+        <div class="px-6 text-[10px] text-gray-700 font-mono">
+            SESSION: <span class="text-green-500">SECURE</span><br>
+            PING: 14ms
         </div>
     </div>
 
-    <div class="max-w-6xl mx-auto p-6">
-        <nav class="flex justify-between items-center mb-10">
-            <h1 class="text-2xl font-black italic">LUARMOR<span class="text-blue-500">.</span></h1>
-            <div class="flex gap-6 text-xs font-bold text-slate-400 uppercase">
-                <a href="#" class="text-blue-400">Obfuscator</a>
-                <a href="#" class="hover:text-white">Scripts</a>
-                <a href="#" class="hover:text-white">Whitelist</a>
+    <main class="flex-1 p-8 flex flex-col gap-6">
+        <header class="flex justify-between items-center h-12">
+            <div>
+                <h2 class="text-lg font-bold text-white">Obfuscation Engine</h2>
+                <p class="text-xs text-gray-500">Transform raw Lua into secure, executable bytecode.</p>
             </div>
-        </nav>
-
-        <div class="grid grid-cols-2 gap-8">
-            <div class="luarmor-card p-6">
-                <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Source Code</h3>
-                <textarea id="src" class="luarmor-input w-full h-[400px] p-4 rounded outline-none resize-none" placeholder="print('Hello World')"></textarea>
-                <button onclick="protect()" class="btn-primary w-full mt-4 py-4 rounded uppercase">Obfuscate & Upload</button>
+            <div class="flex gap-4">
+                <button onclick="obfuscateScript()" class="btn-action">Secure & Build</button>
             </div>
+        </header>
 
-            <div class="luarmor-card p-6">
-                <h3 class="text-xs font-bold text-slate-500 uppercase mb-4">Output (Loader)</h3>
-                <textarea id="out" readonly class="luarmor-input w-full h-[400px] p-4 rounded outline-none resize-none text-green-500" placeholder="Waiting for input..."></textarea>
+        <div class="grid grid-cols-4 gap-4">
+            <div class="stat-box"><p class="text-[10px] text-gray-500 uppercase">Protection Level</p><h3 class="text-blue-500 font-bold">MAXIMUM</h3></div>
+            <div class="stat-box"><p class="text-[10px] text-gray-500 uppercase">VM Status</p><h3 class="text-green-500 font-bold">ONLINE</h3></div>
+            <div class="stat-box"><p class="text-[10px] text-gray-500 uppercase">Script Size</p><h3 id="size-stat" class="text-white font-bold">0 KB</h3></div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 flex-1">
+            <div class="flex flex-col">
+                <label class="text-xs font-bold text-gray-500 mb-2 uppercase flex justify-between">Source Code <span>LUA</span></label>
+                <div id="editor-container" class="editor-container"></div>
+            </div>
+            <div class="flex flex-col">
+                <label class="text-xs font-bold text-gray-500 mb-2 uppercase">Loadstring Output</label>
+                <div class="editor-container bg-[#0a0a0a] relative">
+                    <textarea id="output-box" readonly class="w-full h-full bg-[#0a0a0a] text-green-500 p-4 font-mono text-xs outline-none resize-none" placeholder="// Waiting for compilation..."></textarea>
+                    <button onclick="copyOutput()" class="absolute top-2 right-2 bg-[#222] text-white text-[10px] px-2 py-1 rounded hover:bg-[#333]">COPY</button>
+                </div>
             </div>
         </div>
-    </div>
+    </main>
 
     <script>
-        const MASTER_KEY = "epic-admin-99"; // Change this!
+        // 1. MONACO EDITOR SETUP
+        require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.36.1/min/vs' }});
+        let editor;
+        require(['vs/editor/editor.main'], function() {
+            editor = monaco.editor.create(document.getElementById('editor-container'), {
+                value: 'print("Welcome to Luarmor.")\n-- Paste your script here',
+                language: 'lua',
+                theme: 'vs-dark',
+                minimap: { enabled: false },
+                fontSize: 12,
+                fontFamily: 'JetBrains Mono',
+                automaticLayout: true
+            });
+            // Update stats on change
+            editor.onDidChangeModelContent(() => {
+                const chars = editor.getValue().length;
+                document.getElementById('size-stat').innerText = (chars / 1024).toFixed(2) + " KB";
+            });
+        });
 
-        function login() {
-            if(document.getElementById('pass').value === MASTER_KEY) {
-                document.getElementById('login-overlay').style.display = 'none';
+        // 2. AUTHENTICATION (Hardcoded for Private Use)
+        const AUTH_KEY = "epic-admin-99"; 
+        function authenticate() {
+            if(document.getElementById('key-entry').value === AUTH_KEY) {
+                document.getElementById('auth-gate').style.display = 'none';
+            } else {
+                document.getElementById('error-msg').style.opacity = '1';
             }
         }
 
-        function protect() {
-            const code = document.getElementById('src').value;
-            if(!code) return;
+        // 3. OBFUSCATION LOGIC (Calls the Backend)
+        async function obfuscateScript() {
+            const rawCode = editor.getValue();
+            const outputBox = document.getElementById('output-box');
+            outputBox.value = "// Encrypting and generating loader...";
+            
+            try {
+                // We send the code to our Vercel API
+                const response = await fetch('/api/obfuscate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ script: rawCode })
+                });
+                
+                const data = await response.json();
+                outputBox.value = data.loadstring;
+            } catch (err) {
+                outputBox.value = "-- Error connecting to server.";
+            }
+        }
 
-            // In a real version, we'd send this to the API to save
-            const domain = window.location.origin;
-            const loader = `--[[
-    Protected by Luarmor System
-    Authorized User: Admin
-]]
-_G.LuarmorKey = "YOUR_KEY_HERE"
-loadstring(game:HttpGet("${domain}/api/verify?script=" + btoa(code)))()`;
-
-            document.getElementById('out').value = loader;
+        function copyOutput() {
+            navigator.clipboard.writeText(document.getElementById('output-box').value);
         }
     </script>
 </body>
